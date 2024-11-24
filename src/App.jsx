@@ -10,9 +10,11 @@ const App = () => {
     sales: ["people-1000.csv"],
     finance: ["organizations-1000.csv", "customers-1000.csv"],
   };
+
   const [activeFolder, setActiveFolder] = useState("sales");
   const [selectedFile, setSelectedFile] = useState(null);
   const [activeReports, setActiveReports] = useState([]); // Track active reports
+  const [showReportTable, setShowReportTable] = useState(false); // Track whether to show the table
 
   const filenames = useMemo(
     () => FOLDERS[activeFolder],
@@ -50,6 +52,12 @@ const App = () => {
     );
   };
 
+  // Show the report table and set the selected file
+  const handleFileClick = (filename) => {
+    setSelectedFile(filename);
+    setShowReportTable(true); // Switch to table view
+  };
+
   return (
     <div className="app-container">
       <header>
@@ -61,6 +69,7 @@ const App = () => {
         onFolderChange={(folder) => {
           setActiveFolder(folder);
           setSelectedFile(null); // Reset selected file when folder changes
+          setShowReportTable(false); // Reset to preview view
         }}
       />
       <main>
@@ -69,19 +78,40 @@ const App = () => {
         {error && <p style={{ color: "red" }}>{error}</p>}
         {!loading && !error && (
           <>
-            <div style={{ marginBottom: 8 }}>
-              <h3>Available Reports</h3>
-              <FilenameGrid
-                filenames={filenames}
-                activeReports={activeReports}
-                onToggleActive={toggleReportStatus} // Toggle active/inactive
-                onFileClick={(filename) => setSelectedFile(filename)} // Set selected file
-              />
-            </div>
-            {selectedFile && rows.length > 0 ? (
-              <ReportTable rows={rows} columns={columns} />
+            {showReportTable ? (
+              // Display ReportTable View
+              <>
+                <button
+                  onClick={() => setShowReportTable(false)}
+                  style={{
+                    margin: "10px 0",
+                    padding: "10px",
+                    backgroundColor: "#007bff",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "5px",
+                    cursor: "pointer",
+                  }}
+                >
+                  Back to Reports
+                </button>
+                {selectedFile && rows.length > 0 ? (
+                  <ReportTable rows={rows} columns={columns} />
+                ) : (
+                  <p>No data available for this report.</p>
+                )}
+              </>
             ) : (
-              <p>Select a report to view its data.</p>
+              // Display FilenameGrid View
+              <>
+                <h3>Available Reports</h3>
+                <FilenameGrid
+                  filenames={filenames}
+                  activeReports={activeReports}
+                  onToggleActive={toggleReportStatus}
+                  onFileClick={handleFileClick}
+                />
+              </>
             )}
           </>
         )}
