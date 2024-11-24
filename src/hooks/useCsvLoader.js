@@ -1,40 +1,41 @@
 import { useState, useEffect } from "react";
-import { fetchAndParseCSV } from "../utils/csvUtils";
+import Papa from "papaparse";
 
-const useCsvLoader = (folder, filenames) => {
-  const [data, setData] = useState({});
-  const [loading, setLoading] = useState(true);
+const useCsvLoader = (folder, filename) => {
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  console.log({ folder, filename });
 
   useEffect(() => {
-    const loadCSVFiles = async () => {
+    if (!filename) {
+      setData([]);
+      return;
+    }
+
+    const fetchData = async () => {
       setLoading(true);
       setError(null);
-
       try {
-        const fileData = await Promise.all(
-          filenames.map(async (file) => ({
-            file,
-            data: await fetchAndParseCSV(folder, file),
-          }))
-        );
-
-        // Transform fileData into an object keyed by filename
-        const result = fileData.reduce((acc, { file, data }) => {
-          acc[file] = data;
-          return acc;
-        }, {});
-
-        setData(result);
+        const response = await fetch(`/csv/${folder}/${filename}`);
+        if (!response.ok) {
+          throw new Error(
+            `Failed to fetch ${filename}: ${response.statusText}`
+          );
+        }
+        const csvText = await response.text();
+        const { data } = Papa.parse(csvText, { header: true });
+        setData(data);
       } catch (err) {
-        setError("Failed to load CSV files");
+        setError(err.message);
+        setData([]);
       } finally {
         setLoading(false);
       }
     };
 
-    loadCSVFiles();
-  }, [folder, filenames]);
+    fetchData();
+  }, [folder, filename]);
 
   return { data, loading, error };
 };

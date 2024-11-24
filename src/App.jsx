@@ -16,20 +16,21 @@ const App = () => {
   const [activeReports, setActiveReports] = useState([]); // Track active reports
   const [showReportTable, setShowReportTable] = useState(false); // Track whether to show the table
 
-  const filenames = useMemo(
-    () => FOLDERS[activeFolder],
-    [activeFolder, selectedFile]
+  // Fetch CSV data for the selected file
+  const { data, loading, error } = useCsvLoader(
+    activeFolder,
+    showReportTable ? selectedFile : null // Fetch only if a file is selected and table view is active
   );
 
-  const { data, loading, error } = useCsvLoader(activeFolder, filenames);
+  console.log({ activeFolder, selectedFile, data, showReportTable });
 
   // Prepare rows and columns for DataGrid
   const rows = useMemo(() => {
-    if (selectedFile && data[selectedFile]) {
-      return data[selectedFile].map((row, id) => ({ id, ...row })); // Add unique IDs for DataGrid
+    if (data && selectedFile) {
+      return data.map((row, id) => ({ id, ...row })); // Add unique IDs for DataGrid
     }
     return [];
-  }, [selectedFile, data]);
+  }, [data, selectedFile]);
 
   const columns = useMemo(() => {
     if (rows.length > 0) {
@@ -74,7 +75,7 @@ const App = () => {
       />
       <main>
         <h2>{activeFolder} Reports</h2>
-        {loading && <p>Loading reports...</p>}
+        {loading && <p>Loading report...</p>}
         {error && <p style={{ color: "red" }}>{error}</p>}
         {!loading && !error && (
           <>
@@ -106,7 +107,7 @@ const App = () => {
               <>
                 <h3>Available Reports</h3>
                 <FilenameGrid
-                  filenames={filenames}
+                  filenames={FOLDERS[activeFolder]}
                   activeReports={activeReports}
                   onToggleActive={toggleReportStatus}
                   onFileClick={handleFileClick}
