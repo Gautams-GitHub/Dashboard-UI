@@ -8,8 +8,6 @@ const useCsvLoader = (folder, filenames) => {
 
   useEffect(() => {
     const loadCSVFiles = async () => {
-      console.log("FF");
-
       setLoading(true);
       setError(null);
 
@@ -26,6 +24,7 @@ const useCsvLoader = (folder, filenames) => {
           acc[file] = data;
           return acc;
         }, {});
+
         setData(result);
       } catch (err) {
         setError("Failed to load CSV files");
@@ -33,6 +32,7 @@ const useCsvLoader = (folder, filenames) => {
         setLoading(false);
       }
     };
+
     loadCSVFiles();
   }, [folder, filenames]);
 

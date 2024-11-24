@@ -12,7 +12,10 @@ const App = () => {
   const [activeFolder, setActiveFolder] = useState("sales");
   const [selectedFile, setSelectedFile] = useState(null);
 
-  const filenames = useMemo(() => FOLDERS[activeFolder], [activeFolder]);
+  const filenames = useMemo(
+    () => FOLDERS[activeFolder],
+    [activeFolder, selectedFile]
+  );
 
   const { data, loading, error } = useCsvLoader(activeFolder, filenames);
 

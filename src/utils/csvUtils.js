@@ -7,7 +7,7 @@ export const fetchAndParseCSV = async (folder, filename) => {
     if (!response.ok) throw new Error(`Failed to load ${filename}`);
 
     const csvText = await response.text();
-    return parseCSV(csvText);
+    return enhanceCsvData(parseCSV(csvText));
   } catch (error) {
     console.error(`Error loading CSV: ${error.message}`);
     return null;
@@ -21,4 +21,12 @@ export const parseCSV = (csvText) => {
     skipEmptyLines: true, // Ignore empty rows
   });
   return parsedData.data; // Returns an array of objects
+};
+
+// Enhance parsed data with default fields
+export const enhanceCsvData = (data) => {
+  return data.map((row) => ({
+    ...row,
+    date: row.date || "2024-01-01", // Default date if missing
+  }));
 };
