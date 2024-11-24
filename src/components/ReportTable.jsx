@@ -151,6 +151,7 @@ const ReportTable = ({ rows, columns }) => {
             label="New Tag"
             value={newTag}
             onChange={(e) => setNewTag(e.target.value)}
+            sx={{ marginTop: 2 }}
             fullWidth
           />
         </DialogContent>

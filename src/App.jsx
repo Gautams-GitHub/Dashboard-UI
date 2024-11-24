@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import TabsNavigation from "./components/TabsNavigation";
 import useCsvLoader from "./hooks/useCsvLoader";
 import ReportTable from "./components/ReportTable";
+import FilenameGrid from "./components/FilenameGrid";
 import "./index.css";
 
 const App = () => {
@@ -68,66 +69,14 @@ const App = () => {
         {error && <p style={{ color: "red" }}>{error}</p>}
         {!loading && !error && (
           <>
-            <div>
-              <h3>Select a Report</h3>
-              {filenames.map((filename) => (
-                <button
-                  key={filename}
-                  onClick={() => setSelectedFile(filename)}
-                  style={{
-                    margin: "5px",
-                    padding: "10px",
-                    backgroundColor:
-                      selectedFile === filename ? "#007bff" : "#f8f9fa",
-                    color: selectedFile === filename ? "white" : "black",
-                    border: "1px solid #ccc",
-                    borderRadius: "5px",
-                  }}
-                >
-                  {filename}
-                </button>
-              ))}
-            </div>
-            <div>
-              <h3>Toggle Report Status</h3>
-              {filenames.map((filename) => (
-                <button
-                  key={`toggle-${filename}`}
-                  onClick={() => toggleReportStatus(filename)}
-                  style={{
-                    margin: "5px",
-                    padding: "10px",
-                    backgroundColor: activeReports.includes(filename)
-                      ? "green"
-                      : "red",
-                    color: "white",
-                    border: "1px solid #ccc",
-                    borderRadius: "5px",
-                  }}
-                >
-                  {activeReports.includes(filename) ? "Active" : "Inactive"}
-                </button>
-              ))}
-            </div>
-            <div>
-              <h3>Active Reports</h3>
-              {activeReports.length > 0 ? (
-                <ul>
-                  {activeReports.map((report) => (
-                    <li key={`active-${report}`}>{report}</li>
-                  ))}
-                </ul>
-              ) : (
-                <p>No Active Reports</p>
-              )}
-            </div>
-            <div>
-              <h3>Inactive Reports</h3>
-              {filenames
-                .filter((filename) => !activeReports.includes(filename))
-                .map((inactiveReport) => (
-                  <p key={`inactive-${inactiveReport}`}>{inactiveReport}</p>
-                ))}
+            <div style={{ marginBottom: 8 }}>
+              <h3>Available Reports</h3>
+              <FilenameGrid
+                filenames={filenames}
+                activeReports={activeReports}
+                onToggleActive={toggleReportStatus} // Toggle active/inactive
+                onFileClick={(filename) => setSelectedFile(filename)} // Set selected file
+              />
             </div>
             {selectedFile && rows.length > 0 ? (
               <ReportTable rows={rows} columns={columns} />
