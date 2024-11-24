@@ -1,22 +1,31 @@
 /* eslint-disable react/prop-types */
-import { useState } from "react";
-import { DataGrid } from "@mui/x-data-grid";
+import { useState, useMemo } from "react";
 import {
+  DataGrid,
+  GridToolbarContainer,
+  GridToolbarExport,
+  GridToolbarQuickFilter,
+} from "@mui/x-data-grid";
+import {
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
   Button,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
   TextField,
+  Typography,
 } from "@mui/material";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 
 const ReportTable = ({ rows, columns }) => {
   const [taggedRows, setTaggedRows] = useState(rows || []); // Null check for rows
+  const [groupBy, setGroupBy] = useState(null); // Current group-by field: "date" or "tag"
   const [dialogOpen, setDialogOpen] = useState(false);
   const [currentRowId, setCurrentRowId] = useState(null);
   const [newTag, setNewTag] = useState("");
-
-  console.log(taggedRows);
 
   // Add a new tag to the selected row
   const handleAddTag = () => {
@@ -37,7 +46,7 @@ const ReportTable = ({ rows, columns }) => {
     setDialogOpen(true);
   };
 
-  // Ensure columns are properly handled with tags and add-tag functionality
+  // Extend columns to include "tags" and "addTag"
   const extendedColumns = [
     ...(columns || []), // Null check for columns
     {
@@ -66,18 +75,68 @@ const ReportTable = ({ rows, columns }) => {
     },
   ];
 
+  // Memoized grouped data
+  const groupedData = useMemo(() => {
+    if (!groupBy || !taggedRows) return { Ungrouped: taggedRows };
+
+    return taggedRows.reduce((groups, row) => {
+      const groupKey = groupBy === "tags" ? row.tags?.join(", ") : row.date;
+      if (!groups[groupKey]) groups[groupKey] = [];
+      groups[groupKey].push(row);
+      return groups;
+    }, {});
+  }, [groupBy, taggedRows]);
+
   return (
-    <div style={{ height: 500, width: "100%" }}>
-      <DataGrid
-        rows={taggedRows}
-        columns={extendedColumns}
-        pageSize={20}
-        rowsPerPageOptions={[20, 50, 100, 1000]}
-        onPageSizeChange={(newPageSize) => console.log(newPageSize)} // Placeholder
-        sortingOrder={["asc", "desc"]}
-        disableSelectionOnClick
-        getRowId={(row) => row.id || Math.random()} // Fallback for missing `id`
-      />
+    <div style={{ width: "100%" }}>
+      <div style={{ marginBottom: "16px" }}>
+        <Button
+          variant="contained"
+          onClick={() => setGroupBy("tags")}
+          style={{ marginRight: "8px" }}
+        >
+          Group by Tags
+        </Button>
+        <Button
+          variant="contained"
+          onClick={() => setGroupBy("date")}
+          style={{ marginRight: "8px" }}
+        >
+          Group by Date
+        </Button>
+        <Button variant="outlined" onClick={() => setGroupBy(null)}>
+          Clear Grouping
+        </Button>
+      </div>
+
+      {/* Accordion for grouped data */}
+      {Object.keys(groupedData).map((group) => (
+        <Accordion key={group}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <Typography variant="h6">{group || "Ungrouped"}</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <div style={{ height: 400, width: "100%" }}>
+              <DataGrid
+                rows={groupedData[group]}
+                columns={extendedColumns}
+                pageSize={10}
+                rowsPerPageOptions={[10, 20, 50]}
+                disableSelectionOnClick
+                getRowId={(row) => row.id || Math.random()} // Fallback for missing `id`
+                components={{
+                  Toolbar: () => (
+                    <GridToolbarContainer>
+                      <GridToolbarQuickFilter />
+                      <GridToolbarExport />
+                    </GridToolbarContainer>
+                  ),
+                }}
+              />
+            </div>
+          </AccordionDetails>
+        </Accordion>
+      ))}
 
       {/* Add Tag Dialog */}
       <Dialog
