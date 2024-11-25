@@ -17,8 +17,12 @@ import {
   DialogTitle,
   TextField,
   Typography,
+  Box,
+  IconButton,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import Add from "@mui/icons-material/Add";
+import Close from "@mui/icons-material/Close";
 
 const ReportTable = ({ rows, columns }) => {
   const [taggedRows, setTaggedRows] = useState(rows || []); // Null check for rows
@@ -51,27 +55,49 @@ const ReportTable = ({ rows, columns }) => {
     ...(columns || []), // Null check for columns
     {
       field: "tags",
-      headerName: "Tags",
-      flex: 1,
+      headerName: "Tag",
+      flex: 2,
+      headerAlign: "center",
       renderCell: (params) => {
-        return <div>{params?.row?.tags ? params.row.tags.join(", ") : ""}</div>;
+        return (
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              height: "100%",
+            }}
+          >
+            <div>{params?.row?.tags ? params.row.tags.join(", ") : ""}</div>
+            {params?.row?.tags?.length ? (
+              <IconButton>
+                <Close
+                  key={params?.row?.id}
+                  sx={{ px: 0 }}
+                  onClick={() => {
+                    setCurrentRowId(params.row.id);
+                    setTaggedRows((prevRows) =>
+                      prevRows.map((row) =>
+                        row.id === params.row.id ? { ...row, tags: [""] } : row
+                      )
+                    );
+                  }}
+                />
+              </IconButton>
+            ) : (
+              <Button
+                key={params?.row?.id} // Ensure unique key for button
+                variant="contained"
+                size="small"
+                onClick={() => openTagEditor(params.row.id)}
+                sx={{ px: 0 }}
+              >
+                <Add sx={{ px: 0 }} />
+              </Button>
+            )}
+          </Box>
+        );
       },
-    },
-    {
-      field: "addTag",
-      headerName: "Add Tag",
-      flex: 1,
-      sortable: false,
-      renderCell: (params) => (
-        <Button
-          key={params?.row?.id} // Ensure unique key for button
-          variant="contained"
-          size="small"
-          onClick={() => openTagEditor(params.row.id)}
-        >
-          Add Tag
-        </Button>
-      ),
     },
   ];
 
@@ -87,56 +113,62 @@ const ReportTable = ({ rows, columns }) => {
     }, {});
   }, [groupBy, taggedRows]);
 
+  console.log({ groupedData });
+
   return (
-    <div style={{ width: "100%" }}>
-      <div style={{ marginBottom: "16px" }}>
+    <Box sx={{ width: "100%", padding: 2 }}>
+      {/* Grouping buttons */}
+      <Box sx={{ marginBottom: 2 }}>
         <Button
           variant="contained"
+          color="primary"
           onClick={() => setGroupBy("tags")}
-          style={{ marginRight: "8px" }}
+          sx={{ marginRight: 1 }}
         >
           Group by Tags
-        </Button>
-        <Button
-          variant="contained"
-          onClick={() => setGroupBy("date")}
-          style={{ marginRight: "8px" }}
-        >
-          Group by Date
         </Button>
         <Button variant="outlined" onClick={() => setGroupBy(null)}>
           Clear Grouping
         </Button>
-      </div>
+      </Box>
 
       {/* Accordion for grouped data */}
-      {Object.keys(groupedData).map((group) => (
-        <Accordion key={group}>
-          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <Typography variant="h6">{group || "Ungrouped"}</Typography>
-          </AccordionSummary>
-          <AccordionDetails>
-            <div style={{ height: 400, width: "100%" }}>
-              <DataGrid
-                rows={groupedData[group]}
-                columns={extendedColumns}
-                pageSize={10}
-                rowsPerPageOptions={[10, 20, 50]}
-                disableSelectionOnClick
-                getRowId={(row) => row.id || Math.random()} // Fallback for missing `id`
-                components={{
-                  Toolbar: () => (
-                    <GridToolbarContainer>
-                      <GridToolbarQuickFilter />
-                      <GridToolbarExport />
-                    </GridToolbarContainer>
-                  ),
-                }}
-              />
-            </div>
-          </AccordionDetails>
-        </Accordion>
-      ))}
+      {}
+      {Object.keys(groupedData).map((group) => {
+        if (group == "undefined") {
+          if (Object.keys(groupedData).length > 1) {
+            return;
+          }
+          return <>No such data is available.</>;
+        }
+        return (
+          <Accordion key={group}>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+              <Typography variant="h6">{group || "Ungrouped"}</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Box sx={{ height: 400, width: "100%" }}>
+                <DataGrid
+                  rows={groupedData[group]}
+                  columns={extendedColumns}
+                  pageSize={10}
+                  rowsPerPageOptions={[10, 20, 50]}
+                  disableSelectionOnClick
+                  getRowId={(row) => row.id || Math.random()} // Fallback for missing `id`
+                  components={{
+                    Toolbar: () => (
+                      <GridToolbarContainer>
+                        <GridToolbarQuickFilter />
+                        <GridToolbarExport />
+                      </GridToolbarContainer>
+                    ),
+                  }}
+                />
+              </Box>
+            </AccordionDetails>
+          </Accordion>
+        );
+      })}
 
       {/* Add Tag Dialog */}
       <Dialog
@@ -156,17 +188,20 @@ const ReportTable = ({ rows, columns }) => {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDialogOpen(false)}>Cancel</Button>
+          <Button onClick={() => setDialogOpen(false)} color="secondary">
+            Cancel
+          </Button>
           <Button
             onClick={handleAddTag}
             disabled={!newTag.trim()} // Prevent empty tags
             variant="contained"
+            color="primary"
           >
             Add Tag
           </Button>
         </DialogActions>
       </Dialog>
-    </div>
+    </Box>
   );
 };
 

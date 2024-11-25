@@ -1,7 +1,8 @@
 /* eslint-disable react/prop-types */
 
 import { DataGrid } from "@mui/x-data-grid";
-import { Switch } from "@mui/material";
+import { Switch, Typography, Box } from "@mui/material";
+
 const FilenameGrid = ({
   filenames,
   activeReports,
@@ -52,15 +53,23 @@ const FilenameGrid = ({
   ];
 
   return (
-    <div style={{ height: 400, width: "100%" }}>
+    <Box sx={{ height: 400, width: "100%", marginTop: 2 }}>
+      <Typography variant="h6" sx={{ marginBottom: 2 }}>
+        Available Reports
+      </Typography>
       <DataGrid
         rows={rows}
         columns={columns}
         pageSize={5}
         rowsPerPageOptions={[5, 10]}
         disableSelectionOnClick
+        sx={{
+          boxShadow: 3,
+          borderRadius: 2,
+          border: "1px solid #ccc",
+        }}
       />
-    </div>
+    </Box>
   );
 };
 

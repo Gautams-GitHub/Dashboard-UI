@@ -3,11 +3,20 @@ import TabsNavigation from "./components/TabsNavigation";
 import useCsvLoader from "./hooks/useCsvLoader";
 import ReportTable from "./components/ReportTable";
 import FilenameGrid from "./components/FilenameGrid";
+import {
+  Container,
+  Box,
+  Button,
+  Typography,
+  CircularProgress,
+  Alert,
+} from "@mui/material";
+import { ArrowBack } from "@mui/icons-material";
 import "./index.css";
 
 const App = () => {
   const FOLDERS = {
-    sales: ["people-1000.csv"],
+    sales: ["people-1000.csv", "employees.csv"],
     finance: ["organizations-1000.csv", "customers-1000.csv"],
   };
 
@@ -60,64 +69,77 @@ const App = () => {
   };
 
   return (
-    <div className="app-container">
-      <header>
-        <h1>Dashboard</h1>
-      </header>
-      <TabsNavigation
-        folders={Object.keys(FOLDERS)}
-        activeFolder={activeFolder}
-        onFolderChange={(folder) => {
-          setActiveFolder(folder);
-          setSelectedFile(null); // Reset selected file when folder changes
-          setShowReportTable(false); // Reset to preview view
-        }}
-      />
-      <main>
-        <h2>{activeFolder} Reports</h2>
-        {loading && <p>Loading report...</p>}
-        {error && <p style={{ color: "red" }}>{error}</p>}
-        {!loading && !error && (
-          <>
-            {showReportTable ? (
-              // Display ReportTable View
-              <>
-                <button
-                  onClick={() => setShowReportTable(false)}
-                  style={{
-                    margin: "10px 0",
-                    padding: "10px",
-                    backgroundColor: "#007bff",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "5px",
-                    cursor: "pointer",
-                  }}
-                >
-                  Back to Reports
-                </button>
-                {selectedFile && rows.length > 0 ? (
-                  <ReportTable rows={rows} columns={columns} />
-                ) : (
-                  <p>No data available for this report.</p>
-                )}
-              </>
-            ) : (
-              // Display FilenameGrid View
-              <>
-                <h3>Available Reports</h3>
-                <FilenameGrid
-                  filenames={FOLDERS[activeFolder]}
-                  activeReports={activeReports}
-                  onToggleActive={toggleReportStatus}
-                  onFileClick={handleFileClick}
-                />
-              </>
-            )}
-          </>
-        )}
-      </main>
-    </div>
+    <Container maxWidth="lg" sx={{ paddingTop: 4 }}>
+      <Box display="flex" flexDirection="column" alignItems="center" gap={2}>
+        <Typography variant="h4" component="h1">
+          Dashboard
+        </Typography>
+
+        <TabsNavigation
+          folders={Object.keys(FOLDERS)}
+          activeFolder={activeFolder}
+          onFolderChange={(folder) => {
+            setActiveFolder(folder);
+            setSelectedFile(null); // Reset selected file when folder changes
+            setShowReportTable(false); // Reset to preview view
+          }}
+        />
+
+        <Box sx={{ width: "100%" }}>
+          <Typography variant="h5">
+            {activeFolder.toUpperCase()} Reports
+          </Typography>
+
+          {loading && (
+            <Box sx={{ display: "flex", justifyContent: "center", padding: 3 }}>
+              <CircularProgress />
+            </Box>
+          )}
+          {error && (
+            <Alert severity="error" sx={{ marginBottom: 2 }}>
+              {error}
+            </Alert>
+          )}
+
+          {!loading && !error && (
+            <>
+              {showReportTable ? (
+                // Display ReportTable View
+                <>
+                  <Button
+                    variant="outlined"
+                    color="primary"
+                    startIcon={<ArrowBack />}
+                    onClick={() => setShowReportTable(false)}
+                    sx={{ marginBottom: 2 }}
+                  >
+                    Back to File List
+                  </Button>
+
+                  {selectedFile && rows.length > 0 ? (
+                    <ReportTable rows={rows} columns={columns} />
+                  ) : (
+                    <Typography variant="body1" sx={{ padding: 3 }}>
+                      No data available for this report.
+                    </Typography>
+                  )}
+                </>
+              ) : (
+                // Display FilenameGrid View
+                <>
+                  <FilenameGrid
+                    filenames={FOLDERS[activeFolder]}
+                    activeReports={activeReports}
+                    onToggleActive={toggleReportStatus}
+                    onFileClick={handleFileClick}
+                  />
+                </>
+              )}
+            </>
+          )}
+        </Box>
+      </Box>
+    </Container>
   );
 };
 
